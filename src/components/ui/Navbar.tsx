@@ -21,6 +21,7 @@ import { HeartIcon, Loader, ShoppingCartIcon, UserIcon } from "lucide-react";
 import { CartContext } from "../context/cartContext";
 import { WishlistContext } from "../context/wishlistContext";
 import { signOut, useSession } from "next-auth/react";
+import SearchBar from "@/components/search/SearchBar";
 
 export default function Navbar() {
   const { cartData, isLoading: isCartLoading } = useContext(CartContext);
@@ -29,18 +30,23 @@ export default function Navbar() {
   const [istoggle, setIstoggle] = useState(false);
 
   return (
-    <nav className="border-b border-muted text-xl font-semibold fixed z-50 top-0 inset-x-0 bg-accent/90 shadow">
+    <nav className="border-b border-muted text-xl font-semibold fixed z-50 top-0 inset-x-0 bg-accent/90 backdrop-blur-sm shadow">
       <div className="container mx-auto p-3">
         {/* Top Header */}
-        <div className="flex justify-between items-center md:justify-around">
-          <h1>
+        <div className="flex justify-between items-center gap-4">
+          <h1 className="flex-shrink-0">
             <Link href="/" className="flex items-center gap-1">
               <span className="px-3 py-0.5 rounded-lg text-white bg-primary">
                 S
               </span>
-              ShopMart
+              <span className="hidden sm:inline">ShopMart</span>
             </Link>
           </h1>
+
+          {/* Search Bar - Desktop */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-4">
+            <SearchBar />
+          </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:w-1/2 items-center justify-between gap-6">
@@ -80,7 +86,7 @@ export default function Navbar() {
                   </div>
                 </Link>
               )}
-               {/* CART ICON only when logged in */}
+              {/* CART ICON only when logged in */}
               {session.status === "authenticated" && (
                 <Link href="/cart" className="mx-2">
                   <div className="relative">
@@ -130,7 +136,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-             
+
             </div>
           </div>
 
@@ -159,10 +165,15 @@ export default function Navbar() {
 
         {/* MOBILE MENU */}
         <div
-          className={`md:hidden transition-all overflow-hidden duration-300 ${istoggle ? "max-h-96 opacity-100 mt-4" : "max-h-0 opacity-0"
+          className={`md:hidden transition-all overflow-hidden duration-300 ${istoggle ? "max-h-[600px] opacity-100 mt-4" : "max-h-0 opacity-0"
             }`}
         >
           <div className="flex flex-col gap-3">
+            {/* Search Bar - Mobile */}
+            <div className="mb-2">
+              <SearchBar />
+            </div>
+
             <Link
               className="text-[16px]"
               href="/products"
@@ -197,19 +208,22 @@ export default function Navbar() {
 
                   {session.status === "authenticated" ? (
                     <>
-                      <Link href="/profile">
+                      <Link href="/profile" onClick={() => setIstoggle(false)}>
                         <DropdownMenuItem>Profile</DropdownMenuItem>
                       </Link>
-                      <DropdownMenuItem onClick={() => signOut()}>
+                      <DropdownMenuItem onClick={() => {
+                        setIstoggle(false);
+                        signOut();
+                      }}>
                         Logout
                       </DropdownMenuItem>
                     </>
                   ) : (
                     <>
-                      <Link href="/login">
+                      <Link href="/login" onClick={() => setIstoggle(false)}>
                         <DropdownMenuItem>Login</DropdownMenuItem>
                       </Link>
-                      <Link href="/register">
+                      <Link href="/register" onClick={() => setIstoggle(false)}>
                         <DropdownMenuItem>Register</DropdownMenuItem>
                       </Link>
                     </>
