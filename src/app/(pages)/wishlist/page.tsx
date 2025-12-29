@@ -1,19 +1,49 @@
-import { getWishlist, removeFromWishlist } from "@/Helpers/favourite";
+"use client";
+
+import { useContext, useEffect, useState } from "react";
+import { getWishlist } from "@/Helpers/favourite";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HeartIcon, ShoppingCartIcon, Trash2 } from "lucide-react";
+import { HeartIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import StarsIcon from "@/components/StarsIcon";
 import AddToCart from "@/components/addToCart/addToCart";
 import MyHeartIcon from "@/components/myhearticon/hearticon";
 import { WishlistProduct } from "@/app/_interfaces/wishlistI";
+import { WishlistContext } from "@/components/context/wishlistContext";
+import IsLoading from "@/app/loading";
 
+export default function WishlistPage() {
+  const { wishlistIds, isLoading: contextLoading } = useContext(WishlistContext);
+  const [products, setProducts] = useState<WishlistProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    async function fetchWishlist() {
+      try {
+        setIsLoading(true);
+        const wishlistData = await getWishlist();
+        setProducts(wishlistData?.data || []);
+      } catch (error) {
+        console.error("Error fetching wishlist:", error);
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-export default async function WishlistPage() {
-  const wishlistData = await getWishlist();
-  const products: WishlistProduct[] = wishlistData?.data || [];
+    fetchWishlist();
+  }, [wishlistIds]); // Re-fetch when wishlistIds changes
+
+  // Filter products based on current wishlistIds
+  const displayedProducts = products.filter(product =>
+    wishlistIds.includes(product._id)
+  );
+
+  if (isLoading) {
+    return <IsLoading />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-zinc-950 dark:to-zinc-900 pt-24 pb-12">
@@ -27,14 +57,14 @@ export default async function WishlistPage() {
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-400">
-            {products.length > 0
-              ? `You have ${products.length} ${products.length === 1 ? 'item' : 'items'} in your wishlist`
+            {displayedProducts.length > 0
+              ? `You have ${displayedProducts.length} ${displayedProducts.length === 1 ? 'item' : 'items'} in your wishlist`
               : 'Your wishlist is empty'}
           </p>
         </div>
 
         {/* Wishlist Items */}
-        {products.length === 0 ? (
+        {displayedProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-32 h-32 mb-6 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center">
               <HeartIcon className="w-16 h-16 text-rose-300 dark:text-rose-700" />
@@ -53,7 +83,7 @@ export default async function WishlistPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product, index) => (
+            {displayedProducts.map((product, index) => (
               <Card
                 key={product._id}
                 className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white dark:bg-zinc-900"
